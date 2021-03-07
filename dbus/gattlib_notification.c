@@ -264,7 +264,9 @@ void disconnect_all_notifications(gattlib_context_t* conn_context) {
 
 		g_signal_handler_disconnect(notification_handle->gatt, notification_handle->signal_id);
 		free(notification_handle);
+		l->data = NULL;
 	}
 
 	g_list_free_full(conn_context->notified_characteristics, g_object_unref);
+
 }

@@ -61,6 +61,8 @@ gboolean on_handle_device_property_change(
 					if (gattlib_has_valid_handler(&connection->disconnection)) {
 						gattlib_call_disconnection_handler(&connection->disconnection);
 					}
+
+					
 				}
 			} else if (strcmp(key, "ServicesResolved") == 0) {
 				if (g_variant_get_boolean(value)) {
@@ -251,6 +253,10 @@ gatt_connection_t *gattlib_connect_async(void *adapter, const char *dst,
 }
 
 int gattlib_disconnect(gatt_connection_t* connection) {
+	if (connection == NULL) {
+		return GATTLIB_INVALID_PARAMETER;
+	}
+
 	gattlib_context_t* conn_context = connection->context;
 	GError *error = NULL;
 
@@ -260,13 +266,15 @@ int gattlib_disconnect(gatt_connection_t* connection) {
 		g_error_free(error);
 	}
 
+	disconnect_all_notifications(conn_context);
+
 	free(conn_context->device_object_path);
 	g_object_unref(conn_context->device);
 	g_list_free_full(conn_context->dbus_objects, g_object_unref);
+
 	g_main_loop_quit(conn_context->connection_loop);
 	pthread_join(conn_context->event_thread, NULL);
 	g_main_loop_unref(conn_context->connection_loop);
-	disconnect_all_notifications(conn_context);
 
 	free(connection->context);
 	free(connection);
